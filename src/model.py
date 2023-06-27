@@ -1,4 +1,3 @@
-# Classifier imports
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -21,21 +20,24 @@ import numpy as np
 from joblib import dump, load
 
 path_features = '../data/processed_data/features.csv'.replace('/',os.sep)
-path_target = '.../data/processed_data/target.csv'.replace('/',os.sep)
+path_target = '../data/processed_data/target.csv'.replace('/',os.sep)
 
-df = pd.read_csv(path_features)
-trg= pd.read_csv(path_target)
+id_name = 'nomem_encr'
+trg_name = 'new_child'
+
+df = pd.read_csv(path_features).set_index(id_name)
+trg = pd.read_csv(path_target).set_index(id_name)
 
 # Initialize the classifier.
 model = GradientBoostingClassifier(random_state=42)
 
 # Define the hyperparameter space to search
 params = {
-    'gradientboostingclassifier__learning_rate': [0.01, 0.1],
-    'gradientboostingclassifier__n_estimators': [100],
-    'gradientboostingclassifier__max_depth': [5],
-    'gradientboostingclassifier__min_samples_split': [2],
-    'gradientboostingclassifier__min_samples_leaf': [1]
+    'learning_rate': [0.01, 0.1],
+    'n_estimators': [100],
+    'max_depth': [5],
+    'min_samples_split': [2],
+    'min_samples_leaf': [1]
 }
 
 # Initialize GridSearchCV.
