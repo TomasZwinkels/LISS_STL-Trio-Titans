@@ -1,23 +1,11 @@
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.compose import make_column_selector as selector
-from sklearn.metrics import classification_report
-from sklearn.metrics import RocCurveDisplay
-from sklearn.pipeline import make_pipeline
-from sklearn.impute import SimpleImputer
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.model_selection import GridSearchCV
 
 import os.path
-import pylab as plt
 import pandas as pd
-import numpy as np
 
-from joblib import dump, load
+from joblib import dump
 
 path_features = '../data/processed_data/features.csv'.replace('/',os.sep)
 path_target = '../data/processed_data/target.csv'.replace('/',os.sep)
