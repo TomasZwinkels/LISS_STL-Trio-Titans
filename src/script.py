@@ -25,6 +25,13 @@ import argparse
 import pandas as pd
 from joblib import load
 
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.compose import make_column_selector as selector
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+
 parser = argparse.ArgumentParser(description="Process and score data.")
 subparsers = parser.add_subparsers(dest="command")
 
@@ -54,17 +61,49 @@ def predict_outcomes(df):
     # individual did not have a child during 2020-2022, while '1' implies that
     # they did.
     
-    keepcols = ['burgstat2019', 'leeftijd2019', 'woonvorm2019', 'oplmet2019', 'aantalki2019']
-    nomem_encr = df["nomem_encr"]
+    keepcols = ['geslacht','nomem_encr','burgstat2019','leeftijd2019','woonvorm2019','oplmet2019','aantalki2019']
+
+    nomem_encr = df['nomem_encr']
     
-    df = df.loc[:, keepcols]
+    df = df.loc[:, keepcols].set_index('nomem_encr')
+
+    cat_col = selector(dtype_include=object)(df)
+    num_col = selector(dtype_exclude=object)(df)
+
+    # Create transformers.
+    cat_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='most_frequent')),
+        ('encoder', OneHotEncoder(handle_unknown='infrequent_if_exist'))])
+
+    num_transformer = Pipeline(steps=[
+        ('imputer', SimpleImputer(strategy='mean')),
+        ('scaler', StandardScaler())])
+
+    # Use ColumnTransformer to apply the transformations to the correct columns in the dataframe.
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', num_transformer, selector(dtype_exclude=object)(df)),
+            ('cat', cat_transformer, selector(dtype_include=object)(df))])
+
+    # Exporting features.
+    transformed_data = preprocessor.fit_transform(df).todense()
+
+    # Get the feature names of the transformed categorical columns
+    cat_feature_names = preprocessor.named_transformers_['cat'].get_feature_names_out(cat_col)
+
+    # Create a list of all column names
+    new_column_names = num_col + list(cat_feature_names) 
+
+    # Convert the transformed data to a DataFrame with updated column names
+    df_transformed = pd.DataFrame(transformed_data, columns=new_column_names)
+    df_transformed = pd.DataFrame(index = df.index, columns = new_column_names,data = transformed_data)
     
     # Load your trained model from the models directory
     model_path = os.path.join(os.path.dirname(__file__), "..", "models", "model.joblib")
     model = load(model_path)
 
     # Use your trained model for prediction
-    predictions = model.predict(df)
+    predictions = model.predict(df_transformed)
     # Return the result as a Pandas DataFrame with the columns "nomem_encr" and "prediction"
     return pd.concat([nomem_encr, pd.Series(predictions, name="prediction")], axis=1)
 
