@@ -4,4 +4,8 @@
 .AppleDouble
 .LSOverride
 
-data/
+data/raw_data
+data/processed_data
+data/results
+
+.ows
