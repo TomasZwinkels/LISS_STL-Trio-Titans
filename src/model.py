@@ -21,12 +21,15 @@ from joblib import dump, load
 
 path_features = '../data/processed_data/features.csv'.replace('/',os.sep)
 path_target = '../data/processed_data/target.csv'.replace('/',os.sep)
+path_models = '../models/model.joblib'.replace('/',os.sep)
 
 id_name = 'nomem_encr'
 trg_name = 'new_child'
 
 df = pd.read_csv(path_features).set_index(id_name)
 trg = pd.read_csv(path_target).set_index(id_name)
+
+#X_train, X_test, Y_train, Y_test = train_test_split(df, trg, random_state = 42, test_size = 0.2)
 
 # Initialize the classifier.
 model = GradientBoostingClassifier(random_state=42)
@@ -49,4 +52,11 @@ grid_search.fit(df,  trg.values.ravel())
 # Retrieve hyperparameters.
 hyperparameters = grid_search.best_params_
 
-print(hyperparameters)
+model = GradientBoostingClassifier(**hyperparameters)
+
+model.fit(df,  trg.values.ravel())
+
+# Dump model (don't change the name)
+dump(model, path_models)
+
+#print(hyperparameters)
